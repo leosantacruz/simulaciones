@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>7 días de aprendizaje por refuerzo · dom 23 → sáb 29 de agosto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    font-size: 20px;
+    --paper:#ECEFF3;
+    --panel:#F7F9FB;
+    --ink:#10141A;
+    --ink-soft:#4A5566;
+    --line:#C9D2DC;
+    --reward:#FDE725;
+    --d1:#440154; --d2:#46327E; --d3:#365C8D; --d4:#277F8E;
+    --d5:#1FA187; --d6:#4AC16D; --d7:#93D024;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    font-size:1rem; line-height:1.62;
+    background-image:
+      linear-gradient(to right, rgba(16,20,26,.045) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(16,20,26,.045) 1px, transparent 1px);
+    background-size: 2.2rem 2.2rem;
+  }
+  .wrap{max-width:56rem; margin:0 auto; padding:2rem 1.2rem 5rem}
+
+  /* ---------- header ---------- */
+  .eyebrow{
+    font-family:"JetBrains Mono", ui-monospace, monospace;
+    font-size:.72rem; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  h1{
+    font-family:"Space Grotesk", "Segoe UI", sans-serif;
+    font-weight:700; font-size:2.5rem; line-height:1.08;
+    margin:.5rem 0 .4rem; letter-spacing:-.02em;
+  }
+  h1 em{font-style:normal; background:linear-gradient(transparent 62%, var(--reward) 62%)}
+  .sub{font-size:1.05rem; color:var(--ink-soft); margin:0 0 1.6rem; max-width:34em}
+
+  /* ---------- control de letra ---------- */
+  .typectl{
+    position:sticky; top:0; z-index:20;
+    display:flex; align-items:center; gap:.7rem; flex-wrap:wrap;
+    background:var(--panel); border:1px solid var(--line);
+    padding:.6rem .8rem; margin-bottom:1.6rem;
+    box-shadow:0 2px 0 rgba(16,20,26,.06);
+  }
+  .typectl label{
+    font-family:"JetBrains Mono", monospace; font-size:.72rem;
+    letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft);
+  }
+  .typectl button{
+    font-family:"Space Grotesk", sans-serif; font-weight:700;
+    background:var(--ink); color:var(--panel); border:0;
+    padding:.3rem .8rem; cursor:pointer; font-size:1rem; line-height:1.4;
+  }
+  .typectl button:hover{background:var(--d3)}
+  .typectl button:focus-visible, .cell:focus-visible{outline:3px solid var(--d4); outline-offset:2px}
+  .typectl input[type=range]{flex:1; min-width:9rem; accent-color:var(--d4)}
+  .typectl output{font-family:"JetBrains Mono", monospace; font-size:.8rem; color:var(--ink-soft); min-width:3.4rem}
+
+  /* ---------- gridworld nav (signature) ---------- */
+  .gridnav{margin:0 0 2.4rem}
+  .cells{display:flex; gap:.3rem; flex-wrap:wrap}
+  .cell{
+    flex:1 1 3.6rem; min-width:3.4rem; aspect-ratio:1/1;
+    border:0; cursor:pointer; color:#fff;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    font-family:"Space Grotesk", sans-serif; line-height:1.1;
+    transition:transform .12s ease;
+  }
+  .cell:hover{transform:translateY(-3px)}
+  .cell b{font-size:1.35rem; font-weight:700}
+  .cell span{font-family:"JetBrains Mono", monospace; font-size:.6rem; letter-spacing:.06em; opacity:.85}
+  .cell.goal{background:var(--reward); color:var(--ink); border:1px solid var(--ink)}
+  .legend{
+    font-family:"JetBrains Mono", monospace; font-size:.7rem; color:var(--ink-soft);
+    margin-top:.5rem; letter-spacing:.04em;
+  }
+
+  /* ---------- bloques ---------- */
+  .box{
+    background:var(--panel); border:1px solid var(--line);
+    padding:1.1rem 1.2rem; margin:0 0 2rem;
+  }
+  .box h2{
+    font-family:"Space Grotesk", sans-serif; font-size:1.15rem;
+    margin:0 0 .6rem; letter-spacing:-.01em;
+  }
+  ul{margin:.4rem 0; padding-left:1.2rem}
+  li{margin:.35rem 0}
+
+  /* ---------- día ---------- */
+  .day{
+    background:var(--panel); border:1px solid var(--line);
+    border-top:6px solid var(--c); margin:0 0 1.6rem; padding:1.3rem 1.3rem 1.5rem;
+    scroll-margin-top:5rem;
+  }
+  .day-head{display:flex; gap:.9rem; align-items:flex-start; margin-bottom:.9rem}
+  .num{
+    background:var(--c); color:var(--on); flex:0 0 auto;
+    width:2.6rem; height:2.6rem; display:flex; align-items:center; justify-content:center;
+    font-family:"Space Grotesk", sans-serif; font-weight:700; font-size:1.3rem;
+  }
+  .day-head .when{
+    font-family:"JetBrains Mono", monospace; font-size:.72rem;
+    letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft);
+  }
+  .day-head h3{
+    font-family:"Space Grotesk", sans-serif; font-size:1.5rem; font-weight:700;
+    margin:.1rem 0 0; line-height:1.15; letter-spacing:-.015em;
+  }
+  .hook{
+    border-left:4px solid var(--c); padding:.2rem 0 .2rem .9rem;
+    margin:0 0 1rem; color:var(--ink); font-size:1.02rem;
+  }
+  .hook b{background:linear-gradient(transparent 60%, var(--reward) 60%)}
+
+  .slots{list-style:none; margin:0 0 1rem; padding:0}
+  .slots li{
+    display:flex; gap:.9rem; padding:.5rem 0; border-bottom:1px dashed var(--line);
+  }
+  .slots li:last-child{border-bottom:0}
+  .slots .t{
+    flex:0 0 5.4rem; font-family:"JetBrains Mono", monospace;
+    font-size:.78rem; color:var(--c); font-weight:700; padding-top:.18rem;
+  }
+
+  pre{
+    background:var(--ink); color:#E6EDF3; padding:.9rem 1rem; margin:.8rem 0 1rem;
+    overflow-x:auto; font-family:"JetBrains Mono", ui-monospace, monospace;
+    font-size:.82rem; line-height:1.55; border-left:4px solid var(--c);
+  }
+  pre .c{color:#7D8FA3}
+  pre .k{color:#93D024}
+  code{
+    font-family:"JetBrains Mono", ui-monospace, monospace; font-size:.85em;
+    background:rgba(16,20,26,.07); padding:.08em .35em;
+  }
+  .tag{
+    display:inline-block; font-family:"JetBrains Mono", monospace;
+    font-size:.68rem; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--ink-soft); margin:.9rem 0 .2rem;
+  }
+  .out{border-top:1px solid var(--line); margin-top:1rem; padding-top:.4rem}
+  .out p{margin:.3rem 0}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:1.2rem}
+  @media (max-width:640px){
+    :root{font-size:19px}
+    h1{font-size:2rem}
+    .grid2{grid-template-columns:1fr; gap:.4rem}
+    .slots li{flex-direction:column; gap:.1rem}
+    .slots .t{flex:none}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none !important}}
+  footer{
+    margin-top:2.5rem; padding-top:1.2rem; border-top:2px solid var(--ink);
+    font-family:"JetBrains Mono", monospace; font-size:.72rem; color:var(--ink-soft);
+    letter-spacing:.06em;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">7 días · 1 hora por día · dom 23 → sáb 29 de agosto</p>
+    <h1>De cero a un agente que <em>aprende solo</em></h1>
+    <p class="sub">Python para IA, aprendizaje por refuerzo y simulaciones. Nada de teoría de arranque: cada día terminás con algo que se mueve en pantalla.</p>
+  </header>
+
+  <div class="typectl">
+    <label for="fs">Tamaño de letra</label>
+    <button id="minus" aria-label="Achicar letra">A−</button>
+    <input type="range" id="fs" min="16" max="30" step="1" value="20">
+    <button id="plus" aria-label="Agrandar letra">A+</button>
+    <output id="fsval">20 px</output>
+  </div>
+
+  <nav class="gridnav" aria-label="Ir a un día">
+    <div class="cells">
+      <button class="cell" style="background:var(--d1)" data-go="d1"><b>1</b><span>DOM 23</span></button>
+      <button class="cell" style="background:var(--d2)" data-go="d2"><b>2</b><span>LUN 24</span></button>
+      <button class="cell" style="background:var(--d3)" data-go="d3"><b>3</b><span>MAR 25</span></button>
+      <button class="cell" style="background:var(--d4)" data-go="d4"><b>4</b><span>MIÉ 26</span></button>
+      <button class="cell" style="background:var(--d5)" data-go="d5"><b>5</b><span>JUE 27</span></button>
+      <button class="cell" style="background:var(--d6)" data-go="d6"><b>6</b><span>VIE 28</span></button>
+      <button class="cell" style="background:var(--d7);color:#10141A" data-go="d7"><b>7</b><span>SÁB 29</span></button>
+      <button class="cell goal" data-go="next"><b>★</b><span>META</span></button>
+    </div>
+    <p class="legend">↑ tu gridworld: cada celda es una hora, la última es la recompensa</p>
+  </nav>
+
+  <section class="box">
+    <h2>Reglas del juego</h2>
+    <ul>
+      <li><b>60 minutos y cortás</b>, aunque quede a medias. Lo que quedó colgado es el arranque de mañana.</li>
+      <li><b>Un notebook por día</b>, todo en la misma carpeta <code>rl-lab</code>. Al sábado tenés un repo con 7 cosas que funcionan.</li>
+      <li><b>Si algo no instala en 10 minutos</b>, pasate a Google Colab por ese día y seguí. El objetivo es RL, no pelearte con Windows.</li>
+      <li><b>Copiá el código, pero cambiale algo.</b> Un número, una recompensa, un tamaño de grilla. Ahí es donde aprendés de verdad.</li>
+      <li><b>Nada de matemática por adelantado.</b> Cada día trae la fórmula que necesita ese día y ninguna más.</li>
+    </ul>
+  </section>
+
+  <section class="box">
+    <h2>Antes de arrancar (10 min del día 1)</h2>
+    <p>Todo con <code>uv</code>: es un solo binario, se baja el Python que necesita y deja las dependencias adentro de la carpeta del proyecto. No te llena Windows de programas ni de PATHs raros. Si querés borrar todo después, borrás la carpeta y listo.</p>
+<pre><span class="c"># PowerShell</span>
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+uv init rl-lab
+cd rl-lab
+uv python pin 3.12          <span class="c"># stable-baselines3 pide 3.10+</span>
+uv add numpy matplotlib jupyterlab
+uv run jupyter lab          <span class="c"># abre en el navegador</span></pre>
+    <p><b>Plan B sin instalar nada:</b> <code>colab.research.google.com</code> ya tiene numpy, matplotlib, torch y gymnasium. Sirve para los 7 días, con la contra de que los videos y archivos viven en la nube.</p>
+  </section>
+
+  <!-- ================= DÍA 1 ================= -->
+  <article class="day" id="d1" style="--c:var(--d1); --on:#fff">
+    <div class="day-head">
+      <div class="num">1</div>
+      <div>
+        <p class="when">Domingo 23 · hoy</p>
+        <h3>NumPy y tu primer mundo de 5×5</h3>
+      </div>
+    </div>
+    <p class="hook">Sabés programar, así que no vas a hacer "hola mundo". En la misma hora que tardás en instalar todo, <b>dibujás el mundo donde va a vivir tu agente</b>.</p>
+
+    <ul class="slots">
+      <li><span class="t">0–10 min</span><span>Setup de arriba. Notebook nuevo: <code>dia1.ipynb</code>.</span></li>
+      <li><span class="t">10–35 min</span><span>Python al toque para alguien que viene de JS: listas y dicts, <em>list comprehensions</em> (el <code>.map()</code> de Python), f-strings, y el desempaquetado de tuplas <code>a, b = par</code> — lo vas a ver en cada <code>step()</code> de acá al sábado.</span></li>
+      <li><span class="t">35–50 min</span><span>NumPy: array vs lista, <code>shape</code>, indexado <code>grid[fila, col]</code>, <code>np.zeros</code>, <code>np.random</code>, <code>argmax</code>. <code>argmax</code> es literalmente "qué acción conviene": lo vas a usar los 6 días que siguen.</span></li>
+      <li><span class="t">50–60 min</span><span>Matplotlib: <code>plt.imshow(grid)</code> y ver tu grilla pintada. Movés al agente una celda y volvés a dibujar.</span></li>
+    </ul>
+
+<pre>import numpy as np, matplotlib.pyplot as plt
+
+grid = np.zeros((5, 5))     <span class="c"># 0 = piso</span>
+grid[2, 1:4] = -1           <span class="c"># pared</span>
+grid[4, 4]   =  1           <span class="c"># meta</span>
+agente = [0, 0]
+
+grid[tuple(agente)] = 0.5
+plt.imshow(grid, cmap="viridis"); plt.show()</pre>
+
+    <p class="tag">Mate del día</p>
+    <p>Un <b>vector</b> es una fila de números; una <b>matriz</b> es una grilla de números. Eso es todo el álgebra lineal que necesitás hoy: tu mundo ya es una matriz.</p>
+
+    <div class="out">
+      <p class="tag">Al final tenés</p>
+      <p>Un notebook que dibuja una grilla con paredes, agente y meta.</p>
+      <p class="tag">Si te sobra tiempo</p>
+      <p>Hacé que el agente se mueva 20 pasos al azar y guardá cada frame en una lista.</p>
+    </div>
+  </article>
+
+  <!-- ================= DÍA 2 ================= -->
+  <article class="day" id="d2" style="--c:var(--d2); --on:#fff">
+    <div class="day-head">
+      <div class="num">2</div>
+      <div>
+        <p class="when">Lunes 24</p>
+        <h3>El bandido de 10 brazos: explorar vs. explotar</h3>
+      </div>
+    </div>
+    <p class="hook">Diez tragamonedas, cada una con un promedio distinto que vos no conocés. Mil tiradas. <b>El agente codicioso pierde y lo vas a ver en el gráfico</b> — este es el momento en que el RL deja de ser abstracto.</p>
+
+    <ul class="slots">
+      <li><span class="t">0–10 min</span><span>El concepto: recompensa, valor estimado <code>Q</code>, y por qué "elegir siempre lo mejor conocido" es una trampa.</span></li>
+      <li><span class="t">10–35 min</span><span>Escribís el bandido: 10 brazos, política ε-greedy, media incremental. Son 10 líneas y ya es un agente que aprende.</span></li>
+      <li><span class="t">35–55 min</span><span>Corrés 4 agentes con ε = 0, 0.01, 0.1 y 1, promediás 200 corridas y graficás las 4 curvas juntas. Ese gráfico es el "hola mundo" del RL.</span></li>
+      <li><span class="t">55–60 min</span><span>Anotá qué ε ganó y por qué. Con 100 tiradas cambia el resultado: probalo.</span></li>
+    </ul>
+
+<pre>q_real = np.random.normal(0, 1, 10)   <span class="c"># valor real, oculto</span>
+Q = np.zeros(10); N = np.zeros(10)
+
+for paso in range(1000):
+    if np.random.rand() &lt; eps:
+        a = np.random.randint(10)     <span class="c"># explorar</span>
+    else:
+        a = int(np.argmax(Q))         <span class="c"># explotar</span>
+    r = np.random.normal(q_real[a], 1)
+    N[a] += 1
+    Q[a] += (r - Q[a]) / N[a]         <span class="c"># media incremental</span></pre>
+
+    <p class="tag">Mate del día</p>
+    <p><code>Q ← Q + α·(R − Q)</code>. Traducido: movete un poquito hacia la sorpresa. Ese <code>(R − Q)</code> es el <b>error de predicción</b> y es el motor de todo lo que viene, incluido DQN.</p>
+
+    <div class="out">
+      <p class="tag">Al final tenés</p>
+      <p>Un gráfico de 4 curvas de recompensa promedio y una intuición que no se olvida más.</p>
+      <p class="tag">Si te sobra tiempo</p>
+      <p>Probá ε decreciente (empieza en 1, baja a 0.01) y agregalo al gráfico. Spoiler: le gana a todos.</p>
+    </div>
+  </article>
+
+  <!-- ================= DÍA 3 ================= -->
+  <article class="day" id="d3" style="--c:var(--d3); --on:#fff">
+    <div class="day-head">
+      <div class="num">3</div>
+      <div>
+        <p class="when">Martes 25</p>
+        <h3>Gymnasium: el contrato entre agente y entorno</h3>
+      </div>
+    </div>
+    <p class="hook">Gymnasium (el sucesor mantenido de OpenAI Gym) es el estándar de facto: <code>reset()</code> y <code>step()</code>, nada más. <b>Terminás la hora con un video de tu agente random haciendo desastres</b> — y ese video es el "antes" de la foto del sábado.</p>
+
+    <ul class="slots">
+      <li><span class="t">0–15 min</span><span>Instalás y corrés el loop. Los 5 valores que devuelve <code>step()</code>: observación, recompensa, <code>terminated</code> (se murió / llegó) y <code>truncated</code> (se acabó el tiempo) son cosas distintas, y confundirlos es el bug clásico.</span></li>
+      <li><span class="t">15–35 min</span><span><code>action_space</code> y <code>observation_space</code>: discreto vs. continuo. Compará CartPole (4 números continuos) con FrozenLake (16 estados enteros). Esa diferencia es la razón de ser del día 6.</span></li>
+      <li><span class="t">35–55 min</span><span>Grabás video con el wrapper <code>RecordVideo</code> y mirás 3 episodios de un agente que juega al azar.</span></li>
+      <li><span class="t">55–60 min</span><span>Dejá corriendo <code>uv add torch</code> antes de cerrar: es una descarga grande y el viernes no querés esperarla.</span></li>
+    </ul>
+
+<pre>uv add "gymnasium[classic-control,toy-text]" imageio imageio-ffmpeg</pre>
+<pre>import gymnasium as gym
+env = gym.make("CartPole-v1", render_mode="rgb_array")
+env = gym.wrappers.RecordVideo(env, "videos/random")
+
+obs, info = env.reset(seed=0)
+done = False
+while not done:
+    accion = env.action_space.sample()          <span class="c"># puro azar</span>
+    obs, recompensa, terminated, truncated, info = env.step(accion)
+    done = terminated or truncated
+env.close()</pre>
+
+    <p class="tag">Mate del día</p>
+    <p>Ninguna. Hoy es vocabulario: <b>agente, entorno, estado, acción, recompensa, episodio</b>. Escribilos con tus palabras al final del notebook.</p>
+
+    <div class="out">
+      <p class="tag">Al final tenés</p>
+      <p>Un <code>.mp4</code> del agente random y el loop de RL grabado en la cabeza.</p>
+      <p class="tag">Si te sobra tiempo</p>
+      <p>Corré 500 episodios random en FrozenLake y contá cuántos ganan. Ese número es tu línea de base para mañana.</p>
+    </div>
+  </article>
+
+  <!-- ================= DÍA 4 ================= -->
+  <article class="day" id="d4" style="--c:var(--d4); --on:#fff">
+    <div class="day-head">
+      <div class="num">4</div>
+      <div>
+        <p class="when">Miércoles 26</p>
+        <h3>Q-Learning: la tabla que aprende sola</h3>
+      </div>
+    </div>
+    <p class="hook">Una matriz de estados × acciones, un <code>for</code>, una línea de actualización. <b>En 10 segundos de entrenamiento pasás de 2% de victorias a más del 90%</b>, y después pintás la política como mapa de flechas.</p>
+
+    <ul class="slots">
+      <li><span class="t">0–10 min</span><span>La tabla Q: 16 filas (estados) × 4 columnas (acciones). Cada celda es "qué tan bueno es hacer esto acá".</span></li>
+      <li><span class="t">10–35 min</span><span>El loop de entrenamiento: ε-greedy (día 2) + la actualización de Bellman. 10.000 episodios, ε que baja, <code>gamma=0.95</code>.</span></li>
+      <li><span class="t">35–50 min</span><span>Graficá la tasa de éxito cada 500 episodios: vas a ver la curva despegar. Después mostrá <code>Q.max(axis=1)</code> como heatmap y <code>Q.argmax(axis=1)</code> como flechas sobre el mapa.</span></li>
+      <li><span class="t">50–60 min</span><span>Prendé <code>is_slippery=True</code> y mirá cómo se rompe todo. El azar en el entorno es un tema en sí mismo — necesita más episodios y un <code>alpha</code> más chico.</span></li>
+    </ul>
+
+<pre>Q = np.zeros((env.observation_space.n, env.action_space.n))
+alpha, gamma = 0.1, 0.95
+
+for ep in range(10_000):
+    s, _ = env.reset()
+    done = False
+    while not done:
+        a = env.action_space.sample() if np.random.rand() &lt; eps else int(np.argmax(Q[s]))
+        s2, r, term, trunc, _ = env.step(a)
+        <span class="k">Q[s, a] += alpha * (r + gamma * Q[s2].max() - Q[s, a])</span>
+        s, done = s2, term or trunc
+    eps = max(0.01, eps * 0.999)</pre>
+
+    <p class="tag">Mate del día</p>
+    <p>Esa línea verde es la <b>ecuación de Bellman</b>, y es el bandido de ayer con un agregado: la recompensa de ahora <em>más</em> lo mejor que puedo esperar del próximo estado, descontado por <code>gamma</code>. <code>gamma</code> es cuánto le importa el futuro: 0 = vive el momento, 0.99 = planifica largo.</p>
+
+    <div class="out">
+      <p class="tag">Al final tenés</p>
+      <p>Un agente que resuelve FrozenLake y un mapa de flechas con su política.</p>
+      <p class="tag">Si te sobra tiempo</p>
+      <p>Corré el mismo código en <code>Taxi-v3</code> sin cambiar nada. Que funcione tal cual es exactamente el punto de la API de Gymnasium.</p>
+    </div>
+  </article>
+
+  <!-- ================= DÍA 5 ================= -->
+  <article class="day" id="d5" style="--c:var(--d5); --on:#fff">
+    <div class="day-head">
+      <div class="num">5</div>
+      <div>
+        <p class="when">Jueves 27</p>
+        <h3>Tu propio laberinto (y hacer trampa a propósito)</h3>
+      </div>
+    </div>
+    <p class="hook">Convertís la grilla del día 1 en un entorno de Gymnasium hecho por vos, y le tirás encima el Q-learning de ayer <em>sin tocarle una línea</em>. Después <b>rompés la recompensa a propósito y mirás al agente encontrar el agujero</b>: reward hacking en vivo, la parte más divertida del RL.</p>
+
+    <ul class="slots">
+      <li><span class="t">0–25 min</span><span>Subclase de <code>gym.Env</code>: <code>__init__</code> con los spaces, <code>reset()</code> que devuelve <code>(obs, info)</code> y <code>step()</code> que devuelve los 5 valores. Nada más.</span></li>
+      <li><span class="t">25–40 min</span><span>Importás el agente del día 4 y lo entrenás en tu laberinto. Verlo resolver <em>tu</em> mapa pega distinto.</span></li>
+      <li><span class="t">40–60 min</span><span>Jugá con el diseño de recompensas: −0.01 por paso (apurate), +1 en la meta, −1 en el pozo. Después ponéle +0.1 cada vez que se acerca a la meta y mirá cómo aprende a oscilar para farmear puntos sin llegar nunca.</span></li>
+    </ul>
+
+<pre>class Laberinto(gym.Env):
+    def __init__(self, mapa):
+        self.mapa = mapa
+        self.action_space      = gym.spaces.Discrete(4)          <span class="c"># ↑ → ↓ ←</span>
+        self.observation_space = gym.spaces.Discrete(mapa.size)
+
+    def reset(self, seed=None, options=None):
+        super().reset(seed=seed)
+        self.pos = (0, 0)
+        return self._obs(), {}
+
+    def step(self, accion):
+        self.pos = self._mover(self.pos, accion)
+        gano  = self.pos == self.meta
+        recompensa = 1.0 if gano else -0.01
+        return self._obs(), recompensa, gano, False, {}</pre>
+
+    <p class="tag">Mate del día</p>
+    <p>Probabilidad, versión práctica: si tu <code>step()</code> resbala 1 de cada 5 veces, la recompensa deja de ser un número y pasa a ser un <b>promedio esperado</b>. Por eso el agente necesita repetir tanto: está estimando una media, igual que en el día 2.</p>
+
+    <div class="out">
+      <p class="tag">Al final tenés</p>
+      <p><code>laberinto.py</code> propio, resuelto por tu agente, y una anécdota de reward hacking.</p>
+      <p class="tag">Si te sobra tiempo</p>
+      <p>Agregá una llave que hay que juntar antes de la meta. Ojo: el estado ya no es solo la posición — tiene que incluir "¿tengo la llave?".</p>
+    </div>
+  </article>
+
+  <!-- ================= DÍA 6 ================= -->
+  <article class="day" id="d6" style="--c:var(--d6); --on:#10141A">
+    <div class="day-head">
+      <div class="num">6</div>
+      <div>
+        <p class="when">Viernes 28</p>
+        <h3>PyTorch en una hora: por qué la tabla no alcanza</h3>
+      </div>
+    </div>
+    <p class="hook">CartPole tiene estados continuos: la tabla tendría infinitas filas. La red neuronal es simplemente <b>una tabla Q que sabe interpolar</b>. Hoy entrenás una red chiquita y ves la curva de loss bajar.</p>
+
+    <ul class="slots">
+      <li><span class="t">0–10 min</span><span>Tensor = array de NumPy con dos superpoderes: corre en GPU y se acuerda de cómo lo calculaste (<code>requires_grad</code>).</span></li>
+      <li><span class="t">10–30 min</span><span>El ciclo de entrenamiento, que es siempre el mismo: predecir → calcular loss → <code>backward()</code> → <code>step()</code> → <code>zero_grad()</code>. Memorizá ese orden y ya sabés entrenar cualquier cosa.</span></li>
+      <li><span class="t">30–50 min</span><span>Red de 2 capas que aprende a aproximar una función tuya (probá <code>sin(x)</code>). Graficá la predicción encima de los datos reales cada 100 épocas: es hipnótico.</span></li>
+      <li><span class="t">50–60 min</span><span>Cambiá el <code>lr</code> a 1.0 y mirá explotar todo. Bajalo a 1e-6 y mirá cómo no aprende nada. Eso te ahorra semanas de debugging futuro.</span></li>
+    </ul>
+
+<pre>import torch, torch.nn as nn
+
+red = nn.Sequential(nn.Linear(1, 64), nn.ReLU(), nn.Linear(64, 1))
+opt = torch.optim.Adam(red.parameters(), lr=1e-3)
+
+for epoca in range(2000):
+    pred = red(x)
+    loss = ((pred - y) ** 2).mean()
+    opt.zero_grad(); loss.backward(); opt.step()</pre>
+
+    <p class="tag">Mate del día</p>
+    <p>La <b>derivada</b> es la pendiente: "si muevo este peso un poquito, ¿el error sube o baja?". <code>backward()</code> calcula esa pendiente para todos los pesos de una y <code>step()</code> los mueve un pasito en la dirección que baja. Eso es <em>todo</em> el descenso por gradiente.</p>
+
+    <div class="out">
+      <p class="tag">Al final tenés</p>
+      <p>Una red entrenada, la curva de loss bajando y el ciclo de entrenamiento en los dedos.</p>
+      <p class="tag">Si te sobra tiempo</p>
+      <p>Reemplazá tu tabla Q del día 4 por una red que reciba el estado y devuelva 4 números. Ya estás escribiendo DQN a mano.</p>
+    </div>
+  </article>
+
+  <!-- ================= DÍA 7 ================= -->
+  <article class="day" id="d7" style="--c:var(--d7); --on:#10141A">
+    <div class="day-head">
+      <div class="num">7</div>
+      <div>
+        <p class="when">Sábado 29</p>
+        <h3>DQN de verdad y el video del "después"</h3>
+      </div>
+    </div>
+    <p class="hook">Con Stable-Baselines3 entrenás un DQN en CartPole en 5 minutos y grabás el video del agente que ya no se cae. <b>Al lado del video del martes, ese es tu diploma.</b></p>
+
+    <ul class="slots">
+      <li><span class="t">0–20 min</span><span><code>uv add stable-baselines3</code>, entrenar DQN en CartPole, evaluar y grabar. Tres líneas de librería, pero cada pieza adentro ya la escribiste vos a mano.</span></li>
+      <li><span class="t">20–35 min</span><span>Cambiá <code>DQN</code> por <code>PPO</code> — misma API. PPO es lo que se usa hoy para casi todo (robótica, juegos, y también para alinear modelos de lenguaje). Compará cuál converge más rápido.</span></li>
+      <li><span class="t">35–50 min</span><span>Abrí <code>dqn.py</code> de CleanRL: es una implementación completa en un solo archivo, pensada para leerla. Buscá y reconocé las 3 piezas nuevas: <b>replay buffer</b> (memoria de experiencias pasadas), <b>target network</b> (una copia congelada para que el blanco no se mueva) y el ε-decay que ya conocés.</span></li>
+      <li><span class="t">50–60 min</span><span>Escribí en el notebook, con tus palabras, qué hace un agente de RL. Si podés explicarlo sin fórmulas, cerraste la semana.</span></li>
+    </ul>
+
+<pre>from stable_baselines3 import DQN
+
+modelo = DQN("MlpPolicy", "CartPole-v1", verbose=1)
+modelo.learn(total_timesteps=60_000)
+modelo.save("cartpole_dqn")</pre>
+
+    <p class="tag">Mate del día</p>
+    <p>Ninguna nueva. DQN es el día 4 (Bellman) con el día 6 (una red en lugar de la tabla), más dos parches para que no se vuelva loco. Nada más.</p>
+
+    <div class="out">
+      <p class="tag">Al final tenés</p>
+      <p>Dos videos —el random del martes y el entrenado de hoy— y un repo con 7 notebooks que funcionan.</p>
+    </div>
+  </article>
+
+  <!-- ================= DESPUÉS ================= -->
+  <section class="box" id="next" style="border-top:6px solid var(--reward)">
+    <h2>Después del sábado</h2>
+    <p>Ya vas a tener el mapa completo. Estas son las bifurcaciones, elegí una sola:</p>
+    <div class="grid2">
+      <div>
+        <p class="tag">Si te enganchó lo de simular</p>
+        <ul>
+          <li>Escribí un <b>Snake</b> como <code>gym.Env</code> y entrenalo con PPO. El estado es la parte difícil y divertida.</li>
+          <li><b>PettingZoo</b> para multi-agente: dos agentes que compiten o cooperan.</li>
+          <li><b>Unity ML-Agents</b> si querés 3D y física de verdad.</li>
+        </ul>
+      </div>
+      <div>
+        <p class="tag">Si te enganchó lo de entender</p>
+        <ul>
+          <li><b>Sutton &amp; Barto</b>, <em>Reinforcement Learning: An Introduction</em> — gratis y online, es la biblia. Leelo recién ahora que tenés el código en la mano.</li>
+          <li><b>Spinning Up</b> de OpenAI para la parte de policy gradients.</li>
+          <li>Reimplementá PPO desde cero mirando CleanRL. Es la mejor semana 2 posible.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer>rl-lab · 7 días · dom 23 – sáb 29 ago 2026</footer>
+</div>
+
+<script>
+  const raiz  = document.documentElement;
+  const slider = document.getElementById('fs');
+  const salida = document.getElementById('fsval');
+
+  function aplicar(px){
+    px = Math.min(30, Math.max(16, px));
+    raiz.style.fontSize = px + 'px';
+    slider.value = px;
+    salida.textContent = px + ' px';
+  }
+  slider.addEventListener('input', e => aplicar(parseInt(e.target.value, 10)));
+  document.getElementById('plus').addEventListener('click',  () => aplicar(parseInt(slider.value, 10) + 2));
+  document.getElementById('minus').addEventListener('click', () => aplicar(parseInt(slider.value, 10) - 2));
+
+  document.querySelectorAll('.cell').forEach(c => {
+    c.addEventListener('click', () => {
+      document.getElementById(c.dataset.go).scrollIntoView({behavior:'smooth', block:'start'});
+    });
+  });
+</script>
+</body>
+</html>
